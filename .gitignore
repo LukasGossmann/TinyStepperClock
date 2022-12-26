@@ -1,0 +1,7 @@
+build/
+.vscode/
+TinyStepperClock-backups/
+*.FCStd1
+*.gcode
+*.stl
+*.sl1
