@@ -1,63 +1,79 @@
-#include "pico/stdlib.h"
-#include <stdio.h>
+#include "hardware/gpio.h"
 
 #include "Stepper.h"
 
 /*
-3: AOUT1
-2: AOUT2
-1: BOUT1
-0: BOUT2
+0: AOUT1
+1: AOUT2
+2: BOUT1
+3: BOUT2
 
 1=mosfet active
 0=mostfet inactive
 */
-const uint32_t stepSequence[] = {0b1000, 0b0010, 0b0100, 0b0001};
-const uint32_t stepSequenceLength = count_of(halfStepSequence);
 
+/// @brief Sequence for controling the h-bridge so the stepper motor takes 4 full steps.
+const uint32_t stepSequence[] = {0b1000, 0b0010, 0b0100, 0b0001};
+const uint32_t stepSequenceLength = count_of(stepSequence);
+
+/// @brief Configuration for a stepper motor
 struct stepper
 {
+    /// @brief Bit mask for the gpio pins used to drive the h-bridge of the stepper.
+    /// All used pins need to be consecutive.
     uint32_t gpio_mask;
+
+    /// @brief Number of bits the values of the step sequence need to be shifted by to align with the gpio mask.
     uint32_t gpio_shift;
-    uint32_t microstep_index;
+
+    /// @brief Initial index of the step sequnce array. Leave at zero.
+    uint32_t step_index;
 };
 
+/// @brief Configuration for the hour stepper motor.
 struct stepper hourStepper = {
     0b00001111,
     0,
     0,
 };
+
+/// @brief Configuration for the minute stepper motor.
 struct stepper minuteStepper = {
     0b11110000,
     4,
     0,
 };
 
-void init_stepper(struct stepper *stepper)
+/// @brief Initializes the gpio pins for a stepper motor using the given configuration.
+/// @param stepper The stepper motor to configure.
+void initStepper(struct stepper *stepper)
 {
     gpio_init_mask(stepper->gpio_mask);
     gpio_set_dir_out_masked(stepper->gpio_mask);
     gpio_put_masked(stepper->gpio_mask, stepSequence[0] << stepper->gpio_shift);
 }
 
-void stepper_step(struct stepper *stepper, bool forward)
+/// @brief Moves the given stepper motor in the indicated direction.
+/// @param stepper The stepper motor to move.
+/// @param forward The direction to move the stepper motor.
+void stepperStep(struct stepper *stepper, bool forward)
 {
     if (forward)
     {
-        if (stepper->microstep_index < stepSequenceLength - 1)
-            stepper->microstep_index++;
+        if (stepper->step_index < stepSequenceLength - 1)
+            stepper->step_index++;
         else
-            stepper->microstep_index = 0;
+            stepper->step_index = 0;
     }
     else
     {
-        if (stepper->microstep_index > 0)
-            stepper->microstep_index--;
+        if (stepper->step_index > 0)
+            stepper->step_index--;
         else
-            stepper->microstep_index = stepSequenceLength - 1;
+            stepper->step_index = stepSequenceLength - 1;
     }
 
-    uint32_t value = stepSequence[stepper->microstep_index];
+    uint32_t value = stepSequence[stepper->step_index];
     uint32_t shiftedValue = value << stepper->gpio_shift;
 
     gpio_put_masked(stepper->gpio_mask, shiftedValue);

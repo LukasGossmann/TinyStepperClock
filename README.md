@@ -5,7 +5,7 @@ Tiny stepper motor based clock (including base, L=80mm, W=80mm, H=127mm)
 The clock face is 50mm in diameter with a 5mm wide clear / slightly opaque ring around it for a total diameter of 60mm.  
 Behind the clock face is an LED ring with 12 WS2812 LEDs that light up every hour and play a short animation.  
 The stepper motors used in this clock are very weak so a lot of care need to be taken to align the shafts properly and for the gears to be running as true as possible on the shafts.  
-Each stepper motor has 20 fullsteps per rev which with a gear reduction of 3:1 gives 60 steps per rev.  
+Each stepper motor has 20 fullsteps per revolution which with a gear reduction of 3:1 gives 60 steps per revolution.  
 The minute hand takes a step every minute while the hour hand takes a step every 12 minutes.  
 Since this is the tiny version this implies the existence of a bigger stepper motor based clock ;) (coming soon)  
 **Waring:** The clock is mains powered and there are a few somewhat exposed live traces / metal contacts so build and use at your own risk.
@@ -13,16 +13,19 @@ Since this is the tiny version this implies the existence of a bigger stepper mo
 **Building:**  
 Create all parts needed as shown in the FreeCAD drawing.  
 Assemble as shown on the pictures and in the FreeCAD drawing.  
-A lot of care needs to be taken to be as precise as possible as there inst much room for tolerance in this design.  
+A lot of care needs to be taken to be as precise as possible as there isn't much room for tolerance in this design due to the weak motors and tiny gears.  
+Also a lot of parts are press fit together (bearings in holders, motors in holders, clock face in clear ring, clear ring on LED ring, etc.) so make sure to adjust the design to fit the expacted tolerances of your manufacturing process and the parts you bought.
 Note that one of the stepper motors is wired in the opposite direction so that the same step sequence can be used to drive them.  
 If the motors are turning in the wrong direction or both motors were wired the same on accident the code allows for inverting the motor direction as well.
+When attaching the clock hands to the shaft the clock needs to be powered on (preferably through usb).  
+That way the stepper motors align with one of their magnetic steps which ensures that the hands can properly point to all positions they need to.
+Align the clock hands with the 12 o'clock position and solder them in place.
 
 **Tools:**
 - **CNC machine** or other way to create parts from a piece of flat material as well as for engraving the clock face.
 - **FDM or SLA printer** to create the spacer and the clear ring.
 - Depending on the parts you can get and the need to modify them a **lathe** is very useful.
 - Soldering iron, screwdrivers, etc.
-
 
 **Stepper motors:**  
 20 steps per rev  
@@ -59,6 +62,7 @@ The stepper motors together draw around 160mA at 3.3V with only one of their coi
 - Brass tube 5mm OD, 3mm ID (used as spacers for the stacked PCBs)
 - Brass rod 2mm (shaft for the minute hand)
 - Various M2 and M3 screws, nuts and washers
+- A block of wood or other material to make a base for the clock
 
 **Needed parts (electrical):**
 - 2x Stepper motor

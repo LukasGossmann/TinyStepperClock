@@ -1,7 +1,7 @@
 #ifndef RTC_H
 #define RTC_H
 
-#include "hardware/rtc.h"
+#include "pico/types.h"
 
 extern bool enableHourlyAnimation;
 extern uint8_t animationStartHour;

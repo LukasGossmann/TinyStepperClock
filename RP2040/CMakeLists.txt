@@ -49,7 +49,6 @@ target_link_libraries(TinyStepperClock
         pico_stdlib
         hardware_pio
         hardware_pwm
-        hardware_timer
         hardware_rtc)
 
 # Add the standard include files to the build

@@ -1,7 +1,8 @@
 #ifndef PWM_H
 #define PWM_H
 
-#include "pico/stdlib.h"
+#include "hardware/irq.h"
+#include "pico/types.h"
 
 void seekClockHands(datetime_t *dateTime);
 void clear50hzTimerIrq();

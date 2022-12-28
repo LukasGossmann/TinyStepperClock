@@ -1,19 +1,15 @@
 /**
+ * Parts of this file:
+ * 
  * Copyright (c) 2020 Raspberry Pi (Trading) Ltd.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "pico/stdlib.h"
 #include "hardware/pio.h"
-#include "hardware/clocks.h"
-#include "hardware/pwm.h"
+#include "stdlib.h"
 
 #include "WS2812.pio.h"
-
 #include "PWM.h"
 
 const bool IS_RGBW = false;
@@ -25,7 +21,6 @@ const int sm = 0;
 
 static inline void put_pixel(uint8_t r, uint8_t g, uint8_t b)
 {
-
     uint32_t value = ((uint32_t)(r) << 16) |
                      ((uint32_t)(g) << 24) |
                      ((uint32_t)(b) << 8);
@@ -157,31 +152,38 @@ const struct
     uint32_t duration;
     pattern pat;
 } pattern_table[] = {
-    //{1000, pattern_snakes},
-    //{1000, pattern_random},
+    {1000, pattern_snakes},
+    {1000, pattern_random},
     {1000, pattern_sparkle},
     {1000, pattern_color_sparkle},
     {1000, pattern_greys},
     {1020, pattern_rgbfade},
 };
 
+/// @brief Initializes the PIO for driving the WS2812 leds.
 void ws2812_init()
 {
     uint offset = pio_add_program(pio, &ws2812_program);
     ws2812_program_init(pio, sm, offset, WS2812_PIN, 800000, IS_RGBW);
 }
 
+/// @brief Indicates whether a pattern is currently active or not.
 bool animationActive = false;
+
+/// @brief Counter that keeps track of the time the pattern has been running for.
 uint32_t time = 0;
+
+/// @brief The currently selected pattern-
 uint32_t selectedPattern = 0;
 
-void ws2812_animation_tick()
+/// @brief Handles the timer interrupt and updates the WS2812 leds with the next "frame" of the pattern.
+void ws2812_update_pattern()
 {
     uint32_t duration = pattern_table[selectedPattern].duration;
 
     if (time >= duration)
     {
-        deconfigurePwmFrom50hzTimer(&ws2812_animation_tick);
+        deconfigurePwmFrom50hzTimer(&ws2812_update_pattern);
 
         for (int i = 0; i < NUM_PIXELS; ++i)
             put_pixel(0, 0, 0);
@@ -198,6 +200,7 @@ void ws2812_animation_tick()
     clear50hzTimerIrq();
 }
 
+/// @brief Starts a random pattern
 void ws2812_do_pattern()
 {
     if (animationActive)
@@ -207,5 +210,5 @@ void ws2812_do_pattern()
     time = 0;
     selectedPattern = rand() % count_of(pattern_table);
 
-    configurePwmAs50hzTimer(&ws2812_animation_tick);
+    configurePwmAs50hzTimer(&ws2812_update_pattern);
 }

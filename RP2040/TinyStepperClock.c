@@ -4,7 +4,8 @@
 
 // For scb_hw so we can enable deep sleep
 #include "hardware/structs/scb.h"
-#include "hardware/clocks.h"
+
+// For __wfi() function
 #include "hardware/sync.h"
 
 #include "PWM.h"
@@ -12,7 +13,10 @@
 #include "RTC.h"
 #include "WS2812.h"
 
-void gpio_callback(uint gpio, uint32_t event_mask)
+/// @brief Handles the usb power detection gpio pin going high.
+/// @param gpio The gpio pin that caused the interrupt.
+/// @param event_mask The type of interrupt that occured
+void usbPowerDetectionHandler(uint gpio, uint32_t event_mask)
 {
     if (gpio == 24 && event_mask == GPIO_IRQ_EDGE_RISE)
     {
@@ -27,12 +31,14 @@ void gpio_callback(uint gpio, uint32_t event_mask)
     }
 }
 
-void go_to_sleep()
+/// @brief Puts the current core to sleep until gpio pin 24 (usb power detection) goes high.
+void goToSleep()
 {
     // Enable IRQ for rising edge of usb power
-    gpio_set_irq_enabled_with_callback(24, GPIO_IRQ_EDGE_RISE, true, gpio_callback);
+    gpio_set_irq_enabled_with_callback(24, GPIO_IRQ_EDGE_RISE, true, usbPowerDetectionHandler);
 
     // Turn off all clocks when in sleep mode except for RTC
+    // TODO: Check which other clocks need to keep running
     // clocks_hw->sleep_en0 = CLOCKS_SLEEP_EN0_CLK_RTC_RTC_BITS;
     // clocks_hw->sleep_en1 = 0x0;
 
@@ -46,6 +52,10 @@ void go_to_sleep()
     __wfi();
 }
 
+/// @brief Reads a line from stdin. Aborts when the virtual serial console gets disconnected.
+/// @param buffer The buffer to write the data into.
+/// @param sizeOfBuffer The size of the buffer.
+/// @return Number of chars read or zero when serial console got disconnected.
 uint32_t readLine(char *buffer, uint32_t sizeOfBuffer)
 {
     uint32_t index = 0;
@@ -79,6 +89,10 @@ uint32_t readLine(char *buffer, uint32_t sizeOfBuffer)
     return index;
 }
 
+/// @brief Converts chars 0 to 9 to an integer.
+/// @param c The char to convert.
+/// @param number The result of the converion.
+/// @return true when the character was between 0 to 9, otherwise false.
 bool convertCharToNumber(char c, uint32_t *number)
 {
     if (c >= '0' && c <= '9')
@@ -91,10 +105,10 @@ bool convertCharToNumber(char c, uint32_t *number)
 }
 
 /// @brief Parses a datetime with the given format dd.mm.yy hh:mm
-/// @param buffer
-/// @param sizeofBuffer
-/// @param datetime
-/// @return
+/// @param buffer The buffer containing the string to parse.
+/// @param sizeofBuffer The size of the buffer.
+/// @param datetime The parsed date time.
+/// @return true when the date time was parsed successfully, otherwise false
 bool parseDateTime(char *buffer, uint32_t sizeofBuffer, datetime_t *datetime)
 {
     if (sizeofBuffer != 14)
@@ -218,6 +232,11 @@ bool parseDateTime(char *buffer, uint32_t sizeofBuffer, datetime_t *datetime)
     return true;
 }
 
+/// @brief Parses a string containing a 2 digit hour (00-23)
+/// @param buffer The buffer containing the string to parse.
+/// @param sizeofBuffer The size of the buffer.
+/// @param hour The parsed hour.
+/// @return true when the hour was parsed successfully, otherwise false
 bool parseHour(char *buffer, uint32_t sizeofBuffer, uint8_t *hour)
 {
     if (sizeofBuffer != 2)
@@ -251,6 +270,11 @@ bool parseHour(char *buffer, uint32_t sizeofBuffer, uint8_t *hour)
     return true;
 }
 
+/// @brief Parses a string containing a boolean (yYnN)
+/// @param buffer The buffer containing the string to parse.
+/// @param sizeofBuffer The size of the buffer.
+/// @param value The parsed boolean.
+/// @return true when the boolean was parsed successfully, otherwise false
 bool parseBool(char *buffer, uint32_t sizeofBuffer, bool *value)
 {
     if (sizeofBuffer != 1)
@@ -274,6 +298,9 @@ bool parseBool(char *buffer, uint32_t sizeofBuffer, bool *value)
     return false;
 }
 
+/// @brief Manually home the given stepper motor by typing + or - on the virtual serial console.
+/// @param stepper The stepper motor to home.
+/// @return true when the motor was homed or false when the process was aborted.
 bool manualHomeStepper(struct stepper *stepper)
 {
     // Move motor a step and break when enter is pressed
@@ -289,9 +316,9 @@ bool manualHomeStepper(struct stepper *stepper)
             break;
 
         if (c == '+')
-            stepper_step(stepper, false);
+            stepperStep(stepper, false);
         else if (c == '-')
-            stepper_step(stepper, true);
+            stepperStep(stepper, true);
     }
 
     return powerConnected;
@@ -305,8 +332,8 @@ int main()
     gpio_put(8, false); // Disable driver
 
     // Init step generator
-    init_stepper(&hourStepper);
-    init_stepper(&minuteStepper);
+    initStepper(&hourStepper);
+    initStepper(&minuteStepper);
     gpio_put(8, true); // Enable stepper drivers
 
     // USB power detection gpio
@@ -322,11 +349,12 @@ int main()
 
     // If usb power isnt connected to to sleep
     if (!gpio_get(24))
-        go_to_sleep();
+        goToSleep();
 
     // Either we awoke from sleep or power was connected already
     while (true)
     {
+        // Show that we are awake
         gpio_put(25, true);
 
         // Wait 500ms before attempting to do anything
@@ -487,7 +515,7 @@ int main()
             sleep_ms(500);
 
     endOfLoop:
-        go_to_sleep();
+        goToSleep();
     }
 
     return 0;
