@@ -400,16 +400,6 @@ int main()
         if (!powerConnected)
             goto endOfLoop;
 
-        puts("Move hour hand to 12 o'clock position and press enter. + = CW - = CCW");
-        powerConnected = manualHomeStepper(&hourStepper);
-        if (!powerConnected)
-            goto endOfLoop;
-
-        puts("Move minute hand to 12 o'clock position and press enter. + = CW - = CCW");
-        powerConnected = manualHomeStepper(&minuteStepper);
-        if (!powerConnected)
-            goto endOfLoop;
-
         char buffer[128];
 
         puts("Enable hourly animations (y,n):");
@@ -477,6 +467,19 @@ int main()
             if (!powerConnected)
                 goto endOfLoop;
         }
+
+        // Disable rtc alarm after this point so the clock hands dont move while we are trying to set the clock
+        disableRtcAlarm();
+
+        puts("Move hour hand to 12 o'clock position and press enter. + = CW - = CCW");
+        powerConnected = manualHomeStepper(&hourStepper);
+        if (!powerConnected)
+            goto endOfLoop;
+
+        puts("Move minute hand to 12 o'clock position and press enter. + = CW - = CCW");
+        powerConnected = manualHomeStepper(&minuteStepper);
+        if (!powerConnected)
+            goto endOfLoop;
 
         datetime_t dateAndTime = {};
 

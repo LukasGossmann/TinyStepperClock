@@ -15,8 +15,6 @@ uint8_t animationStartHour;
 /// 0 to 23 inclusive
 uint8_t animationEndHour;
 
-void updateRtcAlarm();
-
 /// @brief Moves the clock hands when the rtc irq fires
 void rtcAlarmHandler()
 {
@@ -53,12 +51,10 @@ void rtcAlarmHandler()
             if (dateTime.hour >= animationStartHour && dateTime.hour <= animationEndHour)
                 ws2812_do_pattern();
     }
-
-    updateRtcAlarm(&dateTime);
 }
 
-/// @brief Updates the alarm of the rtc to wake the pico again on the next full minute
-void updateRtcAlarm()
+/// @brief Enables the alarm of the rtc to wake the pico again on the next full minute
+void enableRtcAlarm()
 {
     // RTC will wake up the pico every 60 seconds
     static datetime_t dateTime = {
@@ -75,11 +71,17 @@ void updateRtcAlarm()
     rtc_enable_alarm();
 }
 
+/// @brief Disables the alarm of the rtc
+void disableRtcAlarm()
+{
+    rtc_disable_alarm();
+}
+
 /// @brief Initializes the rtc with the given time and sets the first alarm
 /// @param t
 void rtcInit(datetime_t *t)
 {
     rtc_init();
     rtc_set_datetime(t);
-    updateRtcAlarm();
+    enableRtcAlarm();
 }
