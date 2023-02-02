@@ -15,6 +15,8 @@ uint8_t animationStartHour;
 /// 0 to 23 inclusive
 uint8_t animationEndHour;
 
+void enableRtcAlarm();
+
 /// @brief Moves the clock hands when the rtc irq fires
 void rtcAlarmHandler()
 {
@@ -51,6 +53,8 @@ void rtcAlarmHandler()
             if (dateTime.hour >= animationStartHour && dateTime.hour <= animationEndHour)
                 ws2812_do_pattern();
     }
+
+    enableRtcAlarm();
 }
 
 /// @brief Enables the alarm of the rtc to wake the pico again on the next full minute
