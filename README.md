@@ -1,4 +1,6 @@
-<img alt="Front view of the clock" src="Pictures/Front.png" width="50%">
+<p align="center">
+<img alt="Front view of the clock" src="Pictures/Front.png" width="60%">
+</p>
 
 **Description:**  
 Tiny stepper motor based clock (including base, L=80mm, W=80mm, H=127mm)  
@@ -7,7 +9,8 @@ Behind the clock face is an LED ring with 12 WS2812 LEDs that light up every hou
 The stepper motors used in this clock are very weak so a lot of care need to be taken to align the shafts properly and for the gears to be running as true as possible on the shafts.  
 Each stepper motor has 20 fullsteps per revolution which with a gear reduction of 3:1 gives 60 steps per revolution.  
 The minute hand takes a step every minute while the hour hand takes a step every 12 minutes.  
-Since this is the tiny version this implies the existence of a bigger stepper motor based clock ;) (coming soon)  
+Since this is the tiny version that implies the existence of a bigger stepper motor based clock.
+The bigger version can be found here: [StepperClock](https://github.com/LukasGossmann/StepperClock)  
 **Waring:** The clock is mains powered and there are a few somewhat exposed live traces / metal contacts so build and use at your own risk.
 
 **Building:**  
